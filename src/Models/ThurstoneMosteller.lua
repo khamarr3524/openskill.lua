@@ -1,6 +1,6 @@
-local util = require(script.Parent.Parent.Util)
-local constants = require(script.Parent.Parent.Constants)
-local statistics = require(script.Parent.Parent.Statistics)
+local util = require "openskill.Util"
+local constants = require "openskill.Constants"
+local statistics = require "openskill.Statistics"
 
 return function(game_, options)
 	options = options or {}
@@ -9,27 +9,28 @@ return function(game_, options)
 	local teamRatings = util.teamRating(game_, options)
 	local result = {}
 	for i, iTeamRating in ipairs(teamRatings) do
-		local iMu, iSigmaSq, iTeam, iRank = unpack(iTeamRating)	
+		local iMu, iSigmaSq, iTeam, iRank = table.unpack(iTeamRating)	
 		local iOmega, iDelta = 0, 0
 		for q, qTeamRating in ipairs(teamRatings) do
-			local qMu, qSigmaSq, qTeam, qRank = unpack(qTeamRating)
-			if i == q then continue end		
-			local ciq = math.sqrt(iSigmaSq + qSigmaSq + twoBetaSq)
-			local deltaMu = (iMu - qMu) / ciq
-			local sigSqToCiq = iSigmaSq / ciq
-			local iGamma = util.gamma(ciq, iSigmaSq)		
-			if qRank > iRank then
-				iOmega += sigSqToCiq * statistics.v(deltaMu, epsilon / ciq)
-				iDelta += (iGamma * sigSqToCiq / ciq * 
-					statistics.w(deltaMu, epsilon / ciq))
-			elseif qRank < iRank then
-				iOmega += -sigSqToCiq * statistics.v(-deltaMu, epsilon / ciq)
-				iDelta += (iGamma * sigSqToCiq / ciq * 
-					statistics.w(-deltaMu, epsilon / ciq))
-			else
-				iOmega += sigSqToCiq * statistics.vt(deltaMu, epsilon / ciq)
-				iDelta += ((iGamma * sigSqToCiq) / ciq) * 
-					statistics.wt(deltaMu, epsilon / ciq)
+			local qMu, qSigmaSq, qTeam, qRank = table.unpack(qTeamRating)
+			if i ~= q then
+				local ciq = math.sqrt(iSigmaSq + qSigmaSq + twoBetaSq)
+				local deltaMu = (iMu - qMu) / ciq
+				local sigSqToCiq = iSigmaSq / ciq
+				local iGamma = util.gamma(ciq, iSigmaSq)		
+				if qRank > iRank then
+					iOmega = iOmega + sigSqToCiq * statistics.v(deltaMu, epsilon / ciq)
+					iDelta = iDelta + (iGamma * sigSqToCiq / ciq * 
+						statistics.w(deltaMu, epsilon / ciq))
+				elseif qRank < iRank then
+					iOmega = iOmega + -sigSqToCiq * statistics.v(-deltaMu, epsilon / ciq)
+					iDelta = iDelta + (iGamma * sigSqToCiq / ciq * 
+						statistics.w(-deltaMu, epsilon / ciq))
+				else
+					iOmega = iOmega +sigSqToCiq * statistics.vt(deltaMu, epsilon / ciq)
+					iDelta = iDelta + ((iGamma * sigSqToCiq) / ciq) * 
+						statistics.wt(deltaMu, epsilon / ciq)
+				end
 			end
 		end	
 		local intermediate = {}
