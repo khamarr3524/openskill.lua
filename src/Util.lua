@@ -1,6 +1,17 @@
 local constants = require "openskill.Constants"
 local util = {}
 
+if not table.find then
+	function table.find(t, v)
+		for i, v2 in ipairs(t) do
+			if v2 == v then
+				return i
+			end
+		end
+		return nil
+	end
+end
+
 function util.score(q, i)
 	if q < i then
 		return 0
