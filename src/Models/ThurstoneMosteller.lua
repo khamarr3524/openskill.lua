@@ -2,6 +2,11 @@ local util = require "openskill.Util"
 local constants = require "openskill.Constants"
 local statistics = require "openskill.Statistics"
 
+-- This makes the code compatible with Lua 5.1 and 5.2, as unpack was moved to table.unpack in 5.2
+if not table.unpack then
+	table.unpack = unpack
+end
+
 return function(game_, options)
 	options = options or {}
 	local twoBetaSq = constants.betaSq(options) * 2
